@@ -1,0 +1,151 @@
+package rsa;
+
+import java.util.*;
+import java.io.*;
+//---------------------------------------------------------
+//Justin Kelley
+//COSC-314
+//RSA Implementation
+//---------------------------------------------------------
+
+
+public class RSA {
+    
+    
+    public static void main(String[] args) throws FileNotFoundException{
+        Scanner console = new Scanner(System.in);
+        Scanner file = new Scanner(new File("C:\\Users\\rideb_000\\Desktop\\rsa.txt"));
+        List<Integer> cypherText = new ArrayList();
+        while(file.hasNextInt()){
+            cypherText.add(file.nextInt());
+        }
+        System.out.println("Enter public key information (n,e)");
+        int n = 18923;
+        int e = 1261;
+       
+        int m; 
+     
+        for (Integer i : cypherText) {
+            m = decrypt(i,n,e);
+            convertToText(m);
+        }
+        
+        
+        
+    }
+    
+    public static List Factor(int num){
+        List<Integer> primeFactors = new ArrayList(); 
+        
+        while(num%2 == 0){ // if 2 divides the number evenly add 2 to the array list
+            primeFactors.add(2);
+            num /= 2;
+        }
+        for(int i = 3;i<= Math.sqrt(num);i+=2){ // the number at this point must be odd we can skip even numbers when checking if num%i = 0
+            while(num%i == 0){
+                primeFactors.add(i); //if i divides the num evenly  add i to the array list
+                num /= i;
+            }           
+        }
+        if(num > 2) // if num is a prime number greater than 2 just add the number to the list, it cannot be factored
+            primeFactors.add(num);
+        return primeFactors;
+              
+        
+    }
+    
+    public static int mulInverse(int a,int b,int n){   
+        int s = extEuclid(a,b);
+        return modCalc(s,n);
+        
+    }
+    
+    public static int extEuclid(int a, int b){
+        int x = 0;
+        int lastX = 1;
+        int quotient,remainder;
+        int tempX;
+        
+        while(b != 0){
+            quotient = a/b;
+            remainder = a % b;
+            a = b;
+            b = remainder;
+            
+            tempX = x;
+            x = (-quotient)*x + lastX;
+            lastX = tempX;
+            
+            
+        }
+        return lastX;
+            
+    }
+    
+    public static int modCalc(int a, int b){
+        int x;
+        if(a > 0)
+            return a%b;
+        else{
+            x = b + a;
+            while(x < 0){
+                x += b;
+            }
+        }
+        return x;
+    }
+    
+    public static int modExp(int a, int b, int n){
+        if(b==0)
+            return 1;
+        int x = modExp(a,b/2,n);
+        int y = (x * x)%n;
+        if(b%2 == 1)
+            y = (y*a)% n;
+        return y;
+        
+    }
+    
+    
+    public static int decrypt(int c,int n, int e){
+        int d;
+        List<Integer> list = new ArrayList(Factor(n));
+        int p = list.get(0) - 1;
+        int q = list.get(1) - 1;
+        int mod = p * q;
+        d = mulInverse(e,mod,mod);
+        int m = modExp(c,d,n);
+        
+        return m; 
+    }
+    
+       
+    
+    public static void convertToText(int m){ // takes the equation n1*26^2 + n2*26 + n3 and inverts it 
+        int n3,n2,n1,temp;
+        
+        n3 = m%26;// yelds the third number
+        temp = (m-n3)/26; 
+        n2 = temp%26; // yelds the second number
+        n1 = (temp-n2)/26; // yelds the first number
+        
+        
+        System.out.print(convertToLetter(n1)+ "" + convertToLetter(n2) + "" + convertToLetter(n3));
+        
+        
+    }
+    
+    public static char convertToLetter(int n){//converts a number to its alphabet representation
+        char letter = 'a';
+        char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray(); // create an array of alphabet characters
+        for(int i = 0;i<alphabet.length;i++){
+            if(alphabet[n] == alphabet[i]) //itterates through the array looking for a matching index
+                letter = alphabet[i];
+        }
+        return letter; 
+        
+    }
+    
+    
+    
+}
